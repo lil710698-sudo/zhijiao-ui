@@ -1,44 +1,25 @@
-name: Deploy GitHub Pages
+name: Restore Previous GitHub Pages
 
 on:
   push:
     branches:
       - main
-  workflow_dispatch:
+    paths:
+      - '.github/workflows/deploy.yml'
 
 permissions:
   contents: write
 
-concurrency:
-  group: github-pages
-  cancel-in-progress: true
-
 jobs:
-  deploy:
+  restore:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
         with:
-          version: 10
+          fetch-depth: 0
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build
-        run: pnpm run build
-
-      - name: Publish gh-pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
+      - name: Reset gh-pages
+        run: |
+          git fetch origin gh-pages:refs/remotes/origin/gh-pages
+          git push --force origin fa79bb0b8c85db9ee2c6d128f8e9ef97e3fcf1f8:refs/heads/gh-pages
